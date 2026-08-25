@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How well are we doing?</title>
+<style>
+  :root {
+    --bg: #EAEDF1;
+    --surface: #FFFFFF;
+    --surface-alt: #F2F4F7;
+    --border: #DBE0E7;
+    --text: #191D23;
+    --text-muted: #5E6572;
+    --text-faint: #9BA1AC;
+    --accent: #0E7A6C;
+    --accent-contrast: #FFFFFF;
+    --accent-tint: #0E7A6C1A;
+    --shadow: 0 1px 2px rgba(20, 24, 30, 0.06), 0 1px 1px rgba(20, 24, 30, 0.04);
+
+    --status-good: #33CC66;
+    --status-warning: #FF9900;
+    --status-critical: #FF3300;
+
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171C;
+      --surface: #1C2027;
+      --surface-alt: #20242C;
+      --border: #2C313B;
+      --text: #E8EAED;
+      --text-muted: #99A0AC;
+      --text-faint: #6B717C;
+      --accent: #3FC7B3;
+      --accent-contrast: #0A1512;
+      --accent-tint: #3FC7B326;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171C;
+    --surface: #1C2027;
+    --surface-alt: #20242C;
+    --border: #2C313B;
+    --text: #E8EAED;
+    --text-muted: #99A0AC;
+    --text-faint: #6B717C;
+    --accent: #3FC7B3;
+    --accent-contrast: #0A1512;
+    --accent-tint: #3FC7B326;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  :root[data-theme="light"] {
+    --bg: #EAEDF1;
+    --surface: #FFFFFF;
+    --surface-alt: #F2F4F7;
+    --border: #DBE0E7;
+    --text: #191D23;
+    --text-muted: #5E6572;
+    --text-faint: #9BA1AC;
+    --accent: #0E7A6C;
+    --accent-contrast: #FFFFFF;
+    --accent-tint: #0E7A6C1A;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    padding-top: 34px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+  .btn:hover { background: var(--surface-alt); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+
+  .app {
+    height: calc(100vh - 34px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex: none;
+    flex-wrap: wrap;
+  }
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.2px;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .topbar .sub {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-left: 10px;
+  }
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .file-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+    z-index: 50;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--tile-status-color, var(--border));
+    border-radius: 10px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .tile-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .tile-value {
+    font-family: var(--font-body);
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text);
+  }
+  .tile-value .unit {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-left: 6px;
+  }
+  .tile-empty .tile-value {
+    color: var(--text-faint);
+  }
+  .tile-caption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.4;
+  }
+  .meter {
+    position: relative;
+    margin: 14px 0 2px;
+  }
+  .meter-track {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--border);
+  }
+  .meter-segment {
+    height: 100%;
+  }
+  .meter-critical { background: var(--status-critical); }
+  .meter-warning { background: var(--status-warning); }
+  .meter-good { background: var(--status-good); }
+  .meter-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 2px;
+    height: 14px;
+    background: var(--text);
+    border-radius: 1px;
+    transform: translate(-50%, -50%);
+  }
+  @media (max-width: 1100px) {
+    .tiles {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+</style>
+</head><body>
+<div style="display:flex;justify-content:center;padding:20px 24px 0;background:var(--surface);"><img src="kpis-thumbnail.jpg" alt="" style="max-height:240px;height:auto;width:auto;display:block;"></div><div class="app">
+  <div class="topbar">
+    <div><h1>How well are we doing?</h1><span class="sub">Snapshot published 25/08/2026, 09:11:28</span></div>
+  </div>
+  <div class="main"><div class="tiles"><div class="tile" style="--tile-status-color: var(--status-warning);"><div class="tile-label">In Process</div><div class="tile-value">83%</div><div class="meter"><div class="meter-track"><div class="meter-segment meter-critical" style="width:80%"></div><div class="meter-segment meter-warning" style="width:15%"></div><div class="meter-segment meter-good" style="width:5%"></div></div><div class="meter-marker" style="left:83.33333333333334%"></div></div><div class="tile-caption">How many requests are received through managed channels</div></div><div class="tile" style="--tile-status-color: var(--status-good);"><div class="tile-label">Responsiveness</div><div class="tile-value">4.9 <span class="unit">days avg</span></div><div class="meter"><div class="meter-track"><div class="meter-segment meter-good" style="width:48.888888888888886%"></div><div class="meter-segment meter-warning" style="width:13.333333333333334%"></div><div class="meter-segment meter-critical" style="width:37.77777777777778%"></div></div><div class="meter-marker" style="left:10.808080808080806%"></div></div><div class="tile-caption">How quickly we respond with an estimate or plan</div></div><div class="tile" style="--tile-status-color: var(--status-good);"><div class="tile-label">Big Thinking</div><div class="tile-value">33%</div><div class="meter"><div class="meter-track"><div class="meter-segment meter-critical" style="width:12%"></div><div class="meter-segment meter-warning" style="width:13%"></div><div class="meter-segment meter-good" style="width:75%"></div></div><div class="meter-marker" style="left:33.33333333333333%"></div></div><div class="tile-caption">How many requests we are able to offer a wider benefit</div></div><div class="tile" style="--tile-status-color: var(--status-critical);"><div class="tile-label">Defined Benefit</div><div class="tile-value">75%</div><div class="meter"><div class="meter-track"><div class="meter-segment meter-critical" style="width:80%"></div><div class="meter-segment meter-warning" style="width:10%"></div><div class="meter-segment meter-good" style="width:10%"></div></div><div class="meter-marker" style="left:75%"></div></div><div class="tile-caption">How many requests can identify the organoisational benefit</div></div><div class="tile" style="--tile-status-color: var(--status-warning);"><div class="tile-label">On Time Releases</div><div class="tile-value">70%</div><div class="meter"><div class="meter-track"><div class="meter-segment meter-critical" style="width:65%"></div><div class="meter-segment meter-warning" style="width:15%"></div><div class="meter-segment meter-good" style="width:20%"></div></div><div class="meter-marker" style="left:70%"></div></div><div class="tile-caption">How often we deliver by the promised date</div></div></div></div>
+</div>
+</body></html>
