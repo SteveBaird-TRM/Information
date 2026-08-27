@@ -278,7 +278,9 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
 </table>
 
 <ul>
-  <li><strong>Privileged user management</strong> (<code>supabase/functions/admin-users/index.ts</code>, excluded folder but worth knowing about) is an Edge Function running under the service-role key.  It never trusts the client's claimed identity — it independently validates the caller's bearer token via <code>admin.auth.getUser(token)</code> and re-checks the resulting email against the hardcoded admin address on every request.</li>
+  <li><strong>Privileged user management.</strong> (<code>supabase/functions/admin-users/index.ts</code>, excluded folder but worth knowing about) is an Edge Function running under the service-role key.  It never trusts the client's claimed identity — it independently validates the caller's bearer token via <code>admin.auth.getUser(token)</code> and re-checks the resulting email against the hardcoded admin address on every request.</li>
+  <li><strong>Auto sign out.</strong> A user is automatically signed out every 14 days forcing a new sign in.  <code>auth-gate.js</code>, enforces this by checking <code>user.last_sign_in_at</code> against the <code>MAX_SESSION_AGE_DAYS</code> setting.</li>
+
 </ul>
 
 <h2>5.  Security notes and open items</h2>
