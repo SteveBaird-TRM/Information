@@ -16,6 +16,7 @@ Scope: `admin`, `comparison`, `devops-visualiser`, `intake`, `project-list`, `ro
 
 * **Code sharing is duplication, not packaging.** `auth-gate.js` is an identical file, copy-pasted into every gated app rather than centralized — a deliberate choice noted in the file's own header comment, since there's no shared build step to import from. `shared/project-picker.js` is the one genuine shared module, consumed via `<script src="/shared/project-picker.js">` by `intake` and `roadmap` only.
 * **Hosting.** Hosting is on vercel.com via GitHub.
+* **Domains.** Primary domain ixiapps.co.uk, secondary domain vercel.app
 
 ## 2\. Database schema
 
@@ -92,5 +93,5 @@ RLS is enabled on every table listed above. Findings from the tracked migrations
 |*(none — admin only)*|`project\_access`, `projects` delete|
 |*(shared, multi-key read)*|`projects` (readable by viewers of any of the three keys above)|
 
-See `overview.md` for a plain-language walkthrough of what each app does and how they fit together.
+
 
