@@ -157,6 +157,12 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
       <td>intake, roadmap, schedule-a, project-list, comparison, admin</td>
     </tr>
     <tr>
+      <td><strong>project_comments</strong></td>
+      <td><code>id</code>, <code>project_id</code>, <code>category</code>, <code>source_app</code>, <code>created_by</code>, <code>created_at</td>
+      <td>Centralised project comments registry.  Records a comment to a project with a category, creator and time.</td>
+      <td>all gated apps, admin</td>
+    </tr>
+    <tr>
       <td><strong>project_access</strong></td>
       <td><code>user_id</code>, <code>project_key</code> (<code>intake</code> / <code>roadmap-db</code> / <code>schedule-a-db-v2</code> / <code>implementation-forum</code>), <code>role</code> (<code>viewer</code>/<code>editor</code>)</td>
       <td>Central per-user, per-app access control table.  Every <code>auth-gate.js</code> and almost every RLS policy consults this.</td>
@@ -213,6 +219,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
   <li><strong><code>is_app_admin()</code></strong> — a <code>security definer</code> SQL function that returns true only if the caller's JWT email matches one hardcoded admin address.  This is the sole "super admin" check used throughout the schema (governs <code>projects</code> delete, and full read/write/delete on <code>project_access</code>).</li>
   <li><strong><code>has_project_access(project_key, min_role)</code></strong> — the workhorse function behind almost every other policy (not present in tracked migrations — predates tracking, confirm its current definition against the live database).</li>
   <li><strong><code>project_access</code>:</strong> self-read (<code>user_id = auth.uid()</code>) plus admin-only read-all/insert/update/delete, gated on <code>is_app_admin()</code>.</li>
+  <li><strong><code>project_comments</code>:</strong> self-read (<code>user_id = auth.uid()</code>), gated on <code>is_app_admin()</code>.</li>
   <li><strong><code>projects</code>:</strong> select — any user with viewer+ access to <code>intake</code>, <code>roadmap-db</code>, or <code>schedule-a-db-v2</code>; insert — editors of any of those three keys; update — editors of any of the three; delete — admin only.</li>
   <li><strong><code>resource_allocations</code> / <code>schedule_settings</code>:</strong> select requires <code>schedule-a-db-v2</code> viewer; insert/update/delete require <code>schedule-a-db-v2</code> editor.</li>
   <li><strong><code>roadmap_tasks</code> / <code>intake_cards</code> / <code>intake_columns</code>:</strong> standard <code>has_project_access()</code>-based read/write policies scoped to their respective project keys (a redundant, inconsistent policy set on <code>intake_columns</code> was cleaned up in a later migration to match this pattern).</li>
