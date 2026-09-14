@@ -121,7 +121,15 @@
 
 <p><strong>Scope:</strong> <code>admin</code>, <code>comparison</code>, <code>devops-visualiser</code>, <code>intake</code>, <code>project-list</code>, <code>roadmap</code>, <code>schedule-a</code>, <code>shared</code>.</p>
 
-<h2>1.  Architecture</h2>
+<h2>1.  Basics</h2>
+
+<ul>
+  <li>The core code is a mix of <code>hmtl</code>, <code>javascript</code>, and <code>css</code>.</lip>
+  <li>Code is uploaded to a <code>github</code> repository before being published via a <code>vercel</code> project.  Both <code>vercel.app</code>, and <code>ixiapps.co.uk</code> domains make the apps availablity to users.</li>
+  <li>A <code>supabase</code> postgres database is used to store project releated data and services user authentication.</li>
+</ul>
+
+<h2>2.  Architecture</h2>
 
 <ul>
   <li><strong>No monorepo, no framework, no build step.</strong> There is no root <code>package.json</code>, no workspaces config, no bundler.  Each app folder is a self-contained set of plain <code>.html</code>/<code>.js</code>/<code>.css</code> files.  The Supabase JS client is loaded via CDN <code>&lt;script&gt;</code> tag as a UMD global (<code>window.supabase.createClient(...)</code>).</li>
@@ -136,7 +144,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
   <li><strong>Domains.</strong> Primary domain ixiapps.co.uk, secondary domain vercel.app</li>
 </ul>
 
-<h2>2.  Database schema</h2>
+<h2>3.  Database schema</h2>
 
 <p>Supabase project ref: <code>aczahhxneshsrnqsezzg</code>.</p>
 
@@ -213,7 +221,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
 
 <p><strong>Cross-app data flow to note:</strong> <code>roadmap/releases.html</code> reads <code>intake_cards</code> directly to pull the original requestor's name for each milestone — this is the one place a "downstream" app reaches back into an "upstream" app's table rather than going through <code>projects</code>.</p>
 
-<h2>3.  Row Level Security (RLS)</h2>
+<h2>4.  Row Level Security (RLS)</h2>
 
 <p>RLS is enabled on every table listed above.  Findings from the tracked migrations, corroborated by an in-repo security review (<code>security check.txt</code> at the repo root — not excluded, worth reading in full):</p>
 
@@ -229,7 +237,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
   <li><strong>A recurring foot-gun in this codebase:</strong> RLS policies being correct is not sufficient — the underlying Postgres <code>GRANT</code> to the <code>authenticated</code>/<code>service_role</code> roles must also exist, or you get "permission denied" even with a correct policy.  Two migrations exist purely to fix missing base grants after RLS was already right (<code>project_access</code>, <code>projects</code> delete).  Worth remembering if you hit unexplained permission errors while extending the schema.</li>
 </ul>
 
-<h2>4.  Authentication</h2>
+<h2>5.  Authentication</h2>
 
 <ul>
   <li>Every gated app loads its own copy of <strong><code>auth-gate.js</code></strong>, which:
@@ -292,7 +300,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
 
 </ul>
 
-<h2>5.  Security notes and open items</h2>
+<h2>6.  Security notes and open items</h2>
 
 <ul>
   <li><strong>No client-side service-role usage found.</strong> A full-tree search for <code>service_role</code> only turns up server-side GRANTs (SQL) and the Edge Function's Deno environment variable — never shipped to the browser.  No issue here.</li>
@@ -306,7 +314,7 @@ SUPABASE_KEY = 'sb_publishable_...'   (public anon-equivalent key — safe to ex
   <li><strong>The public anon/publishable key being hardcoded and identical across every app is expected and fine</strong> — it's a public key by design, and the whole security model deliberately rests on RLS + <code>project_access</code>, not key secrecy.</li>
 </ul>
 
-<h2>6.  Quick reference: tables ↔ project keys</h2>
+<h2>7.  Quick reference: tables ↔ project keys</h2>
 
 <table>
   <thead>
